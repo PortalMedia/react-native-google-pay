@@ -30,7 +30,47 @@ export interface RequestDataType {
     totalPriceStatus: string
     currencyCode: string
   }
-  merchantName: string
+  merchantName: string,
+  emailRequired: boolean,
+  shippingAddressRequired: boolean,
+}
+
+export interface ResponsePaymentData {
+  apiVersion: number,
+  apiVersionMinor: number,
+  email: string,
+  paymentMethodData: PaymentMethodData,
+  shippingAddress: ShippingAddress
+}
+
+interface PaymentMethodData {
+  type: string,
+  description: string,
+  info: PaymentMethodInfo,
+  tokenizationData: TokenizationData
+}
+
+interface PaymentMethodInfo {
+  cardNetwork: string,
+  cardDetails: string,
+}
+
+interface TokenizationData {
+  type: string,
+  token: string,
+}
+
+interface ShippingAddress {
+	address1: String;
+	address2: String;
+	address3: String;
+	administrativeArea: String;
+	countryCode: String;
+	locality: String;
+	name: String;
+	phoneNumber: String;
+	postalCode: String;
+	sortingCode: String;
 }
 
 declare class GooglePay {
