@@ -64,6 +64,12 @@ public class PaymentsUtil {
     return new JSONObject().put("merchantName", merchantName);
   }
 
+  private static JSONObject getShipAddressParameters() throws JSONException {
+    JSONObject shipAddressParams = new JSONObject();
+    shipAddressParams.put("phoneNumberRequired", true);
+    return shipAddressParams;
+  }
+
   private static JSONObject getTokenizationSpecification(final ReadableMap tokenizationSpecification) throws JSONException {
     return new JSONObject() {{
       put("type", tokenizationSpecification.getString("type"));
@@ -105,6 +111,15 @@ public class PaymentsUtil {
           "allowedPaymentMethods", new JSONArray().put(PaymentsUtil.getCardPaymentMethod(requestData.getMap("cardPaymentMethod"))));
       paymentDataRequest.put("transactionInfo", PaymentsUtil.getTransactionInfo(requestData.getMap("transaction")));
       paymentDataRequest.put("merchantInfo", PaymentsUtil.getMerchantInfo(requestData.getString("merchantName")));
+
+      if (requestData.getBoolean("emailRequired")) {
+        paymentDataRequest.put("emailRequired", true);
+      }
+
+      if (requestData.getBoolean("shippingAddressRequired")) {
+        paymentDataRequest.put("shippingAddressRequired", true);
+        paymentDataRequest.put("shippingAddressParameters", PaymentsUtil.getShipAddressParameters());
+      }
 
       return paymentDataRequest;
     } catch (JSONException e) {
