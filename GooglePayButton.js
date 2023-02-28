@@ -3,6 +3,5 @@ import React from 'react';
 import { RNGooglePayButton } from './RNGooglePayButton';
 
 export const GooglePayButton = () => {
-	console.log('In GooglePayButton... testing testing testing');
-	return <RNGooglePayButton />;
+	return <RNGooglePayButton style={{ height: 40, width: '100%' }}/>;
 };

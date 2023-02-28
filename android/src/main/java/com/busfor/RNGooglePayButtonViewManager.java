@@ -3,12 +3,11 @@ package com.busfor;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 
-import android.view.View;
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.widget.FrameLayout;
 
-import com.facebook.react.modules.core.DeviceEventManagerModule;
-import com.facebook.react.uimanager.annotations.ReactProp;
-
-public class RNGooglePayButtonViewManager extends SimpleViewManager<GooglePayButtonView> {
+public class RNGooglePayButtonViewManager extends SimpleViewManager<FrameLayout> {
 
   @Override
   public String getName() {
@@ -16,8 +15,10 @@ public class RNGooglePayButtonViewManager extends SimpleViewManager<GooglePayBut
   }
 
   @Override
-  protected View createViewInstance(final ThemedReactContext reactContext) {
-    return new GooglePayButtonView(reactContext);
+  protected FrameLayout createViewInstance(final ThemedReactContext reactContext) {
+    LayoutInflater inflater = (LayoutInflater) reactContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    FrameLayout frameLayout = (FrameLayout) inflater.inflate(R.layout.buy_with_googlepay_button, null);
+    return frameLayout;
   }
 
 }
