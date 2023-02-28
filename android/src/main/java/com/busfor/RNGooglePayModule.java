@@ -48,6 +48,11 @@ public class RNGooglePayModule extends ReactContextBaseJavaModule {
 
   private static final int LOAD_PAYMENT_DATA_REQUEST_CODE = 991;
 
+  @Override
+  public String getName() {
+    return "RNGooglePay";
+  }
+
   private final ActivityEventListener activityEventListener = new BaseActivityEventListener() {
     @Override
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
@@ -175,8 +180,4 @@ public class RNGooglePayModule extends ReactContextBaseJavaModule {
     requestPaymentPromise.resolve(paymentInformation);
   }
 
-  @Override
-  public String getName() {
-    return "RNGooglePay";
-  }
 }
