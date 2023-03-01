@@ -101,6 +101,33 @@ public class PaymentsUtil {
     JSONObject cardPaymentMethod = getBaseCardPaymentMethod(allowedCardNetworks, allowedCardAuthMethods);
     cardPaymentMethod.put("tokenizationSpecification", getTokenizationSpecification(cardPaymentMethodData.getMap("tokenizationSpecification")));
 
+    if (cardPaymentMethodData.getBoolean("billingAddressRequired")) {
+      cardPaymentMethod.put("billingAddressRequired", cardPaymentMethodData.getBoolean("billingAddressRequired"));
+      if (cardPaymentMethodData.hasKey("billingAddressParameters")) {
+        JSONObject billingAddressParameters = new JSONObject();
+        ReadableMap billingAddressParametersData = cardPaymentMethodData.getMap("billingAddressParameters");
+        if (billingAddressParametersData.hasKey("format")) {
+          billingAddressParameters.put("format", billingAddressParametersData.getString("format"));
+        }
+        if (billingAddressParametersData.hasKey("phoneNumberRequired")) {
+          billingAddressParameters.put("phoneNumberRequired", billingAddressParametersData.getBoolean("phoneNumberRequired"));
+        }
+        cardPaymentMethod.put("billingAddressParameters", billingAddressParameters);
+      }
+    }
+
+    if (cardPaymentMethodData.hasKey("assuranceDetailsRequired")) {
+      cardPaymentMethod.put("assuranceDetailsRequired", cardPaymentMethodData.getBoolean("assuranceDetailsRequired"));
+    }
+
+    if (cardPaymentMethodData.hasKey("allowCreditCards")) {
+      cardPaymentMethod.put("allowCreditCards", cardPaymentMethodData.getBoolean("allowCreditCards"));
+    }
+
+    if (cardPaymentMethodData.hasKey("allowPrepaidCards")) {
+      cardPaymentMethod.put("allowPrepaidCards", cardPaymentMethodData.getBoolean("allowPrepaidCards"));
+    }
+
     return cardPaymentMethod;
   }
 

@@ -10,20 +10,19 @@ export interface RequestDataType {
   cardPaymentMethod: {
     tokenizationSpecification: {
       type: tokenizationSpecificationType
-      /** only with type: PAYMENT_GATEWAY */
-      gateway?: string
-      /** only with type: PAYMENT_GATEWAY */
-      gatewayMerchantId?: string
-      /** only with gateway: stripe */
-      stripe?: {
-        publishableKey: string
-        version: string
-      }
-      /** only with type: DIRECT */
-      publicKey?: string
+      gateway: string
+      gatewayMerchantId: string
     }
     allowedCardNetworks: AllowedCardNetworkType[]
     allowedCardAuthMethods: AllowedCardAuthMethodsType[]
+    allowPrepaidCards: boolean
+    allowCreditCards: boolean
+    assuranceDetailsRequired: boolean
+    billingAddressRequired: boolean
+    billingAddressParameters: {
+      format: string
+      phoneNumberRequired: boolean
+    }
   }
   transaction: {
     totalPrice: string
@@ -40,7 +39,7 @@ export interface ResponsePaymentData {
   apiVersionMinor: number,
   email: string,
   paymentMethodData: PaymentMethodData,
-  shippingAddress: ShippingAddress
+  shippingAddress: Address
 }
 
 interface PaymentMethodData {
@@ -53,6 +52,8 @@ interface PaymentMethodData {
 interface PaymentMethodInfo {
   cardNetwork: string,
   cardDetails: string,
+  billingAddress: Address
+  assuranceDetails: AssuranceDetails
 }
 
 interface TokenizationData {
@@ -60,7 +61,12 @@ interface TokenizationData {
   token: string,
 }
 
-interface ShippingAddress {
+interface AssuranceDetails {
+  accountVerified: boolean,
+  cardHolderAuthenticated: boolean,
+}
+
+export interface Address {
 	address1: String;
 	address2: String;
 	address3: String;
