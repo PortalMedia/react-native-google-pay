@@ -4,69 +4,79 @@ export type AllowedCardNetworkType = 'AMEX' | 'DISCOVER' | 'JCB' | 'MASTERCARD' 
 
 export type AllowedCardAuthMethodsType = 'PAN_ONLY' | 'CRYPTOGRAM_3DS'
 
-export type tokenizationSpecificationType = 'PAYMENT_GATEWAY' | 'DIRECT'
+export type TokenizationSpecificationType = 'PAYMENT_GATEWAY' | 'DIRECT'
 
-export interface RequestDataType {
-  cardPaymentMethod: {
-    tokenizationSpecification: {
-      type: tokenizationSpecificationType
-      gateway: string
-      gatewayMerchantId: string
-    }
+export interface PaymentRequest {
+  apiVersion: number
+  apiVersionMinor: number
+  environment: string
+  allowedPaymentMethod: AllowedPaymentMethod
+  transactionInfo: {
+    totalPrice: string
+    totalPriceStatus: string
+    currencyCode: string
+    totalPriceLabel: string | null
+  }
+  merchantInfo: {
+    merchantName: string
+  }
+  emailRequired: boolean
+  shippingAddressRequired: boolean
+  shippingAddressParameters: {
+    phoneNumberRequired: boolean
+  } | null
+}
+
+interface AllowedPaymentMethod {
+  type: string
+  parameters: {
+    allowedAuthMethods: AllowedCardAuthMethodsType[]
     allowedCardNetworks: AllowedCardNetworkType[]
-    allowedCardAuthMethods: AllowedCardAuthMethodsType[]
     allowPrepaidCards: boolean
     allowCreditCards: boolean
-    assuranceDetailsRequired: boolean
     billingAddressRequired: boolean
+    assuranceDetailsRequired: boolean
     billingAddressParameters: {
       format: string
       phoneNumberRequired: boolean
     }
   }
-  transaction: {
-    totalPrice: string
-    totalPriceStatus: string
-    currencyCode: string
+  tokenizationSpecification: {
+    type: string
+    parameters: {
+      gateway: string
+      gatewayMerchantId: string
+    }
   }
-  merchantName: string,
-  emailRequired: boolean,
-  shippingAddressRequired: boolean,
 }
 
-export interface ResponsePaymentData {
+export interface PaymentResponse {
   apiVersion: number,
   apiVersionMinor: number,
   email: string,
   paymentMethodData: PaymentMethodData,
-  shippingAddress: Address
+  shippingAddress: Address | null
 }
 
 interface PaymentMethodData {
   type: string,
   description: string,
-  info: PaymentMethodInfo,
-  tokenizationData: TokenizationData
+  info: {
+    cardNetwork: string
+    cardDetails: string
+    billingAddress: Address
+    assuranceDetails: {
+      accountVerified: boolean
+      cardHolderAuthenticated: boolean,
+    }
+  },
+  tokenizationData: {
+    type: string
+    token: string
+  }
 }
 
-interface PaymentMethodInfo {
-  cardNetwork: string,
-  cardDetails: string,
-  billingAddress: Address
-  assuranceDetails: AssuranceDetails
-}
-
-interface TokenizationData {
-  type: string,
-  token: string,
-}
-
-interface AssuranceDetails {
-  accountVerified: boolean,
-  cardHolderAuthenticated: boolean,
-}
-
-export interface Address {
+interface Address {
 	address1: String;
 	address2: String;
 	address3: String;
@@ -87,7 +97,7 @@ declare class GooglePay {
     allowedCardNetworks: AllowedCardNetworkType[],
     allowedCardAuthMethods: AllowedCardAuthMethodsType[]
   ) => Promise<boolean>
-  static requestPayment: (requestData: RequestDataType) => Promise<string>
+  static requestPayment: (requestData: PaymentRequest) => Promise<string>
 }
 
 export { GooglePay }
