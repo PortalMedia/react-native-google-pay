@@ -48,6 +48,11 @@ public class RNGooglePayModule extends ReactContextBaseJavaModule {
 
   private static final int LOAD_PAYMENT_DATA_REQUEST_CODE = 991;
 
+  @Override
+  public String getName() {
+    return "RNGooglePay";
+  }
+
   private final ActivityEventListener activityEventListener = new BaseActivityEventListener() {
     @Override
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
@@ -167,30 +172,12 @@ public class RNGooglePayModule extends ReactContextBaseJavaModule {
 
   private void handlePaymentSuccess(PaymentData paymentData) {
     String paymentInformation = paymentData.toJson();
-
     // Token will be null if PaymentDataRequest was not constructed using fromJson(String).
     if (paymentInformation == null) {
       requestPaymentPromise.reject("NULL_PAYMENT_INFORMATION", "paymentInformation is null");
       return;
     }
-    JSONObject paymentMethodData;
-
-    try {
-      paymentMethodData = new JSONObject(paymentInformation).getJSONObject("paymentMethodData");
-      // If the gateway is set to "example", no payment information is returned - instead, the
-      // token will only consist of "examplePaymentMethodToken".
-
-      // Logging token string.
-      String token = paymentMethodData.getJSONObject("tokenizationData").getString("token");
-      requestPaymentPromise.resolve(token);
-    } catch (JSONException e) {
-      Log.e(TAG, "[GooglePay] handlePaymentSuccess error: " + e.toString());
-      return;
-    }
+    requestPaymentPromise.resolve(paymentInformation);
   }
 
-  @Override
-  public String getName() {
-    return "RNGooglePay";
-  }
 }

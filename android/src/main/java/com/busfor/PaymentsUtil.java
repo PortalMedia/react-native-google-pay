@@ -15,25 +15,7 @@ import com.facebook.react.bridge.ReadableMap;
 
 public class PaymentsUtil {
 
-  private PaymentsUtil() {
-  }
-
-  private static JSONObject getBaseRequest() throws JSONException {
-    return new JSONObject().put("apiVersion", 2).put("apiVersionMinor", 0);
-  }
-
-  private static JSONObject getBaseCardPaymentMethod(ArrayList allowedCardNetworks, ArrayList allowedCardAuthMethods) throws JSONException {
-    JSONObject cardPaymentMethod = new JSONObject();
-    cardPaymentMethod.put("type", "CARD");
-
-    JSONObject parameters = new JSONObject();
-    parameters.put("allowedAuthMethods", new JSONArray(allowedCardAuthMethods));
-    parameters.put("allowedCardNetworks", new JSONArray(allowedCardNetworks));
-
-    cardPaymentMethod.put("parameters", parameters);
-
-    return cardPaymentMethod;
-  }
+  private PaymentsUtil() {}
 
   public static PaymentsClient createPaymentsClient(int environment, Activity activity) {
     Wallet.WalletOptions walletOptions = new Wallet.WalletOptions.Builder().setEnvironment(environment).build();
@@ -42,8 +24,24 @@ public class PaymentsUtil {
 
   public static JSONObject getIsReadyToPayRequest(ArrayList allowedCardNetworks, ArrayList allowedCardAuthMethods) {
     try {
-      JSONObject isReadyToPayRequest = getBaseRequest();
-      JSONArray allowedPaymentMethods = new JSONArray().put(getBaseCardPaymentMethod(allowedCardNetworks, allowedCardAuthMethods));
+      JSONObject isReadyToPayRequest = new JSONObject();
+
+      // API Version
+      isReadyToPayRequest.put("apiVersion", 2);
+      isReadyToPayRequest.put("apiVersionMinor", 0);
+
+      // Allowed Payment Methods
+      JSONArray allowedPaymentMethods = new JSONArray();
+      JSONObject allowedPaymentMethod = new JSONObject();
+      allowedPaymentMethod.put("type", "CARD");
+
+      // Allowed Payment Methods: Parameters
+      JSONObject parameters = new JSONObject();
+      parameters.put("allowedAuthMethods", new JSONArray(allowedCardAuthMethods));
+      parameters.put("allowedCardNetworks", new JSONArray(allowedCardNetworks));
+      allowedPaymentMethod.put("parameters", parameters);
+      allowedPaymentMethods.put(allowedPaymentMethod);
+
       isReadyToPayRequest.put("allowedPaymentMethods", allowedPaymentMethods);
       return isReadyToPayRequest;
     } catch (JSONException e) {
@@ -51,62 +49,167 @@ public class PaymentsUtil {
     }
   }
 
-  private static JSONObject getTransactionInfo(ReadableMap transaction) throws JSONException {
+  private static JSONObject getTransactionInfo(ReadableMap transactionInfoData) throws JSONException {
     JSONObject transactionInfo = new JSONObject();
-    transactionInfo.put("totalPrice", transaction.getString("totalPrice"));
-    transactionInfo.put("totalPriceStatus", transaction.getString("totalPriceStatus"));
-    transactionInfo.put("currencyCode", transaction.getString("currencyCode"));
-
+    transactionInfo.put("totalPrice", transactionInfoData.getString("totalPrice"));
+    transactionInfo.put("totalPriceStatus", transactionInfoData.getString("totalPriceStatus"));
+    transactionInfo.put("currencyCode", transactionInfoData.getString("currencyCode"));
     return transactionInfo;
   }
 
-  private static JSONObject getMerchantInfo(String merchantName) throws JSONException {
-    return new JSONObject().put("merchantName", merchantName);
+  private static JSONObject getMerchantInfo(ReadableMap merchantInfoData) throws JSONException {
+    JSONObject merchantInfo = new JSONObject();
+    merchantInfo.put("merchantName", merchantInfoData.getString("merchantName"));
+    return merchantInfo;
   }
 
-  private static JSONObject getTokenizationSpecification(final ReadableMap tokenizationSpecification) throws JSONException {
-    return new JSONObject() {{
-      put("type", tokenizationSpecification.getString("type"));
-      put("parameters", new JSONObject() {
-        {
-          if (tokenizationSpecification.hasKey("gateway")) {
-            put("gateway", tokenizationSpecification.getString("gateway"));
-          }
-          if (tokenizationSpecification.hasKey("gatewayMerchantId")) {
-            put("gatewayMerchantId", tokenizationSpecification.getString("gatewayMerchantId"));
-          }
-          if (tokenizationSpecification.hasKey("publicKey")) {
-            put("protocolVersion", "ECv2");
-            put("publicKey", tokenizationSpecification.getString("publicKey"));
-          }
-          if (tokenizationSpecification.hasKey("stripe")) {
-            final ReadableMap stripe = tokenizationSpecification.getMap("stripe");
-            put("stripe:publishableKey", stripe.getString("publishableKey"));
-            put("stripe:version", stripe.getString("version"));
-          }
+  private static JSONObject getTokenizationSpecification(ReadableMap tokenizationSpecData) throws JSONException {
+    JSONObject tokenizationSpec = new JSONObject();
+    tokenizationSpec.put("type", tokenizationSpecData.getString("type"));
+
+    JSONObject parameters = new JSONObject();
+    ReadableMap parametersData = tokenizationSpecData.getMap("parameters");
+    parameters.put("gateway", parametersData.getString("gateway"));
+    parameters.put("gatewayMerchantId", parametersData.getString("gatewayMerchantId"));
+
+    tokenizationSpec.put("parameters", parameters);
+    return tokenizationSpec;
+  }
+
+  private static JSONObject getCardPaymentMethodParameters(ReadableMap paramsData) throws JSONException {
+    JSONObject parameters = new JSONObject();
+
+    // Allowed Auth Methods and Card Networks
+    ArrayList allowedAuthMethods = paramsData.getArray("allowedAuthMethods").toArrayList();
+    ArrayList allowedCardNetworks = paramsData.getArray("allowedCardNetworks").toArrayList();
+    parameters.put("allowedAuthMethods", new JSONArray(allowedAuthMethods));
+    parameters.put("allowedCardNetworks", new JSONArray(allowedCardNetworks));
+
+    // Billing Address Required
+    if (paramsData.hasKey("billingAddressRequired")) {
+      boolean billingAddressRequired = paramsData.getBoolean("billingAddressRequired");
+      parameters.put("billingAddressRequired", billingAddressRequired);
+
+      // Billing Address Parameters
+      if (billingAddressRequired && paramsData.hasKey("billingAddressParameters")) {
+        JSONObject billingAddressParameters = new JSONObject();
+        ReadableMap billingAddressParametersData = paramsData.getMap("billingAddressParameters");
+
+        // Format
+        if (billingAddressParametersData.hasKey("format")) {
+          billingAddressParameters.put("format", billingAddressParametersData.getString("format"));
+        } else {
+          // default to FULL if not supplied
+          billingAddressParameters.put("format", "FULL");
         }
-      });
-    }};
+
+        // Phone Number Required
+        if (billingAddressParametersData.hasKey("phoneNumberRequired")) {
+          billingAddressParameters.put("phoneNumberRequired", billingAddressParametersData.getBoolean("phoneNumberRequired"));
+        } else {
+          // default to true if not supplied
+          billingAddressParameters.put("phoneNumberRequired", true);
+        }
+
+        parameters.put("billingAddressParameters", billingAddressParameters);
+      }
+    }
+
+    // Assurance Details Required
+    if (paramsData.hasKey("assuranceDetailsRequired")) {
+      parameters.put("assuranceDetailsRequired", paramsData.getBoolean("assuranceDetailsRequired"));
+    } else {
+      // default to false if not supplied
+      parameters.put("assuranceDetailsRequired", false);
+    }
+
+    // Allow Credit Cards
+    if (paramsData.hasKey("allowCreditCards")) {
+      parameters.put("allowCreditCards", paramsData.getBoolean("allowCreditCards"));
+    } else {
+      // default to true if not supplied
+      parameters.put("allowCreditCards", true);
+    }
+
+    // Allow Prepaid Cards
+    if (paramsData.hasKey("allowPrepaidCards")) {
+      parameters.put("allowPrepaidCards", paramsData.getBoolean("allowPrepaidCards"));
+    } else {
+      // default to true if not supplied
+      parameters.put("allowPrepaidCards", true);
+    }
+
+    return parameters;
   }
 
-  private static JSONObject getCardPaymentMethod(ReadableMap cardPaymentMethodData) throws JSONException {
-    ArrayList allowedCardNetworks = cardPaymentMethodData.getArray("allowedCardNetworks").toArrayList();
-    ArrayList allowedCardAuthMethods = cardPaymentMethodData.getArray("allowedCardAuthMethods").toArrayList();
-    JSONObject cardPaymentMethod = getBaseCardPaymentMethod(allowedCardNetworks, allowedCardAuthMethods);
-    cardPaymentMethod.put("tokenizationSpecification", getTokenizationSpecification(cardPaymentMethodData.getMap("tokenizationSpecification")));
+  private static JSONObject getCardPaymentMethod(ReadableMap allowedPaymentMethodData) throws JSONException {
+    JSONObject cardPaymentMethod = new JSONObject();
+
+    // Type
+    if (allowedPaymentMethodData.hasKey("type")) {
+      cardPaymentMethod.put("type", allowedPaymentMethodData.getString("type"));
+    }
+
+    // Parameters (CARD)
+    cardPaymentMethod.put("parameters", getCardPaymentMethodParameters(allowedPaymentMethodData.getMap("parameters")));
+
+    // Tokenization Specification
+    cardPaymentMethod.put("tokenizationSpecification", getTokenizationSpecification(allowedPaymentMethodData.getMap("tokenizationSpecification")));
 
     return cardPaymentMethod;
   }
 
   public static JSONObject getPaymentDataRequest(ReadableMap requestData) {
     try {
-      JSONObject paymentDataRequest = PaymentsUtil.getBaseRequest();
-      paymentDataRequest.put(
-          "allowedPaymentMethods", new JSONArray().put(PaymentsUtil.getCardPaymentMethod(requestData.getMap("cardPaymentMethod"))));
-      paymentDataRequest.put("transactionInfo", PaymentsUtil.getTransactionInfo(requestData.getMap("transaction")));
-      paymentDataRequest.put("merchantInfo", PaymentsUtil.getMerchantInfo(requestData.getString("merchantName")));
+      JSONObject paymentRequest = new JSONObject();
 
-      return paymentDataRequest;
+      // API Version
+      if (requestData.hasKey("apiVersion") && requestData.hasKey("apiVersionMinor")) {
+        paymentRequest.put("apiVersion", requestData.getInt("apiVersion"));
+        paymentRequest.put("apiVersionMinor", requestData.getInt("apiVersionMinor"));
+      } else {
+        // set default values if not supplied
+        paymentRequest.put("apiVersion", 2).put("apiVersionMinor", 0);
+      }
+
+      // Allowed Payment Methods
+      paymentRequest.put("allowedPaymentMethods", new JSONArray().put(PaymentsUtil.getCardPaymentMethod(requestData.getMap("allowedPaymentMethod"))));
+
+      // Transaction Info
+      paymentRequest.put("transactionInfo", PaymentsUtil.getTransactionInfo(requestData.getMap("transactionInfo")));
+
+      // Merchant Info
+      paymentRequest.put("merchantInfo", PaymentsUtil.getMerchantInfo(requestData.getMap("merchantInfo")));
+
+      // Email Required
+      if (requestData.hasKey("emailRequired")) {
+        paymentRequest.put("emailRequired", requestData.getBoolean("emailRequired"));
+      } else {
+        // default to true if not supplied
+        paymentRequest.put("emailRequired", true);
+      }
+
+      // Shipping Address Required
+      if (requestData.hasKey("shippingAddressRequired")) {
+        boolean shippingAddressRequired = requestData.getBoolean("shippingAddressRequired");
+        paymentRequest.put("shippingAddressRequired", shippingAddressRequired);
+        if (shippingAddressRequired && requestData.hasKey("shippingAddressParameters")) {
+          ReadableMap shipAddressParamData = requestData.getMap("shippingAddressParameters");
+          JSONObject shipAddressParams = new JSONObject();
+          if (shipAddressParamData.hasKey("phoneNumberRequired")) {
+            shipAddressParams.put("phoneNumberRequired", shipAddressParamData.getBoolean("phoneNumberRequired"));
+          } else {
+            // default to true if not supplied
+            shipAddressParams.put("phoneNumberRequired", true);
+          }
+          paymentRequest.put("shippingAddressParameters", shipAddressParams);
+        }
+      } else {
+        // default to false if not supplied
+        paymentRequest.put("shippingAddressRequired", false);
+      }
+
+      return paymentRequest;
     } catch (JSONException e) {
       return null;
     }
