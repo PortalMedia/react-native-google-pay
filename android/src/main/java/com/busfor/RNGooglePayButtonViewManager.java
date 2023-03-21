@@ -17,7 +17,7 @@ public class RNGooglePayButtonViewManager extends SimpleViewManager<RelativeLayo
   @Override
   protected RelativeLayout createViewInstance(final ThemedReactContext reactContext) {
     LayoutInflater inflater = (LayoutInflater) reactContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    RelativeLayout relativeLayout = (RelativeLayout) inflater.inflate(R.layout.buy_with_googlepay_button_no_shadow, null);
+    RelativeLayout relativeLayout = (RelativeLayout) inflater.inflate(R.layout.pay_with_googlepay_button_no_shadow, null);
     return relativeLayout;
   }
 
