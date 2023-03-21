@@ -5,9 +5,9 @@ import com.facebook.react.uimanager.ThemedReactContext;
 
 import android.content.Context;
 import android.view.LayoutInflater;
-import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 
-public class RNGooglePayButtonViewManager extends SimpleViewManager<FrameLayout> {
+public class RNGooglePayButtonViewManager extends SimpleViewManager<RelativeLayout> {
 
   @Override
   public String getName() {
@@ -15,10 +15,10 @@ public class RNGooglePayButtonViewManager extends SimpleViewManager<FrameLayout>
   }
 
   @Override
-  protected FrameLayout createViewInstance(final ThemedReactContext reactContext) {
+  protected RelativeLayout createViewInstance(final ThemedReactContext reactContext) {
     LayoutInflater inflater = (LayoutInflater) reactContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    FrameLayout frameLayout = (FrameLayout) inflater.inflate(R.layout.buy_with_googlepay_button, null);
-    return frameLayout;
+    RelativeLayout relativeLayout = (RelativeLayout) inflater.inflate(R.layout.buy_with_googlepay_button, null);
+    return relativeLayout;
   }
 
 }
