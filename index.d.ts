@@ -101,3 +101,5 @@ declare class GooglePay {
 }
 
 export { GooglePay }
+
+export { default as GooglePayButton } from './GooglePayButton'
